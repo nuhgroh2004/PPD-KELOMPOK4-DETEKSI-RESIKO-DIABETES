@@ -1,0 +1,92 @@
+/* app.css - Styling untuk Sistem Deteksi Resiko Diabetes */
+
+.main-header {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 1rem;
+}
+.sub-header {
+    font-size: 1.2rem;
+    color: #475569;
+    margin-bottom: 2rem;
+}
+.feature-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin-bottom: 2rem;
+}
+.feature-card {
+    background-color: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #3b82f6;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    height: 100%;
+    overflow: auto;
+}
+.feature-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+}
+.feature-desc {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .feature-row {
+        flex-direction: column;
+    }
+    .feature-card {
+        padding: 1.25rem;
+    }
+    .feature-desc {
+        font-size: 0.9rem;
+    }
+}
+@media (max-width: 600px) {
+    .feature-card {
+        padding: 1rem;
+    }
+    .feature-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .feature-desc {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+}
+.stats-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+}
+.cta-button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 1rem;
+}
+/* Hide sidebar dropdown navigation by class */
+.st-emotion-cache-40ynm6.eczjsme8 {
+    display: none !important;
+}
+
