@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9ff1bd41-342e-465b-ac7d-8ed4a1361ced" name="Changes" comment="landing page app">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/2_Page_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/2_Page_2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,12 +27,12 @@
     &quot;assignee&quot;: &quot;nuhgroh2004&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/nuhgroh2004/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES.git",
-    "accountId": "31325200-fbdd-4e8d-b05e-6de7922e12ba"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/nuhgroh2004/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES.git&quot;,
+    &quot;accountId&quot;: &quot;31325200-fbdd-4e8d-b05e-6de7922e12ba&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -46,9 +47,10 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "nuhgroh",
+    "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES"
+    "last_opened_file_path": "D:/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES",
+    "settings.editor.selected.configurable": "preferences.lookFeel"
   }
 }]]></component>
   <component name="SharedIndexes">
