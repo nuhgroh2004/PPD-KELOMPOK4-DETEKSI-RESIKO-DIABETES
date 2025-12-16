@@ -46,6 +46,37 @@ except:
     st.warning("Model belum ditemukan. Pastikan file model sudah tersedia.")
 
 # =============================
+# FUNGSI KONVERSI USIA → AGE GROUP BRFSS
+# =============================
+def convert_age_to_group(age):
+    if age <= 24:
+        return 1
+    elif age <= 29:
+        return 2
+    elif age <= 34:
+        return 3
+    elif age <= 39:
+        return 4
+    elif age <= 44:
+        return 5
+    elif age <= 49:
+        return 6
+    elif age <= 54:
+        return 7
+    elif age <= 59:
+        return 8
+    elif age <= 64:
+        return 9
+    elif age <= 69:
+        return 10
+    elif age <= 74:
+        return 11
+    elif age <= 79:
+        return 12
+    else:
+        return 13
+
+# =============================
 # MAPPING TEKS → NILAI
 # =============================
 yes_no_map = {
@@ -63,7 +94,7 @@ with st.form("form_prediksi"):
 
     with col1:
         bmi = st.number_input("BMI", min_value=10.0, max_value=60.0, value=25.0)
-        age = st.slider("Usia (Kategori BRFSS)", 1, 13, 5)
+        age_real = st.number_input("Usia (tahun)", min_value=18, max_value=100, value=30)
         high_bp_text = st.selectbox("Tekanan Darah Tinggi", list(yes_no_map.keys()))
         high_chol_text = st.selectbox("Kolesterol Tinggi", list(yes_no_map.keys()))
 
@@ -79,9 +110,11 @@ with st.form("form_prediksi"):
 # =============================
 if submit and model_loaded:
 
+    age_group = convert_age_to_group(age_real)
+
     input_data = pd.DataFrame([[
         bmi,
-        age,
+        age_group,
         yes_no_map[high_bp_text],
         yes_no_map[high_chol_text],
         yes_no_map[smoker_text],

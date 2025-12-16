@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9ff1bd41-342e-465b-ac7d-8ed4a1361ced" name="Changes" comment="landing page app">
+    <list default="true" id="9ff1bd41-342e-465b-ac7d-8ed4a1361ced" name="Changes" comment="page 2 (model belum dimasukkin)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/2_Page_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/2_Page_2.py" afterDir="false" />
     </list>
@@ -41,18 +41,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;nuhgroh&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/PPD-KELOMPOK4-DETEKSI-RESIKO-DIABETES&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -76,7 +76,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765711056560</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="page 2 (model belum dimasukkin)">
+      <option name="closed" value="true" />
+      <created>1765881446428</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1765881446428</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -92,7 +100,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="landing page app" />
-    <option name="LAST_COMMIT_MESSAGE" value="landing page app" />
+    <MESSAGE value="page 2 (model belum dimasukkin)" />
+    <option name="LAST_COMMIT_MESSAGE" value="page 2 (model belum dimasukkin)" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
