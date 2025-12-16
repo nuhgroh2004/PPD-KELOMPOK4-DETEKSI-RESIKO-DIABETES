@@ -1,0 +1,96 @@
+{
+  "numeric_features": [
+    "BMI",
+    "MentHlth",
+    "PhysHlth"
+  ],
+  "binary_features": [
+    "HighChol",
+    "CholCheck",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "DiffWalk",
+    "Sex",
+    "HighBP"
+  ],
+  "ordinal_features": [
+    "Age",
+    "Education",
+    "Income",
+    "GenHlth"
+  ],
+  "ordinal_categories": {
+    "Age": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "Education": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "Income": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "GenHlth": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "total_features": 21,
+  "target_column": "Diabetes_binary",
+  "model_type": "binary_classification",
+  "classes": {
+    "0": "Tidak Diabetes",
+    "1": "Diabetes/Pra-Diabetes"
+  },
+  "model_info": {
+    "algorithm": "XGBoost Classifier",
+    "optimization": "Bayesian Optimization",
+    "hyperparameters": {
+      "colsample_bytree": 0.8720873760997414,
+      "learning_rate": 0.050192551728860876,
+      "max_depth": 5,
+      "min_child_weight": 6,
+      "n_estimators": 199,
+      "reg_alpha": 0.06445027771865242,
+      "subsample": 0.8039771628025254
+    },
+    "preprocessing": {
+      "numeric_scaler": "RobustScaler",
+      "binary_encoder": "OneHotEncoder",
+      "ordinal_encoder": "OrdinalEncoder"
+    }
+  }
+}
