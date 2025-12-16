@@ -1,13 +1,10 @@
-# Page 2 - Deteksi Resiko Diabetes
-
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
+import joblib
 import os
 
-# --- IMPORT SAFEGUARD ---
-# Kita bungkus import ini supaya app tidak crash jika library belum diinstall
+# --- IMPORT LIBRARY GOOGLE (SAFEGUARD) ---
 try:
     import google.generativeai as genai
     HAS_GENAI_LIB = True
@@ -16,7 +13,7 @@ except ImportError:
 
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(
-    page_title="Prediksi & Rekomendasi",
+    page_title="Prediksi Risiko Diabetes",
     page_icon="🩺",
     layout="wide"
 )
@@ -28,147 +25,202 @@ try:
 except FileNotFoundError:
     pass
 
-# --- KONFIGURASI API (SAFE MODE) ---
+# --- KONFIGURASI API GEMINI (SAFE MODE) ---
 api_key = None
-
-# Coba ambil dari secrets, tapi jangan crash kalau file tidak ada
 try:
     if 'GEMINI_API_KEY' in st.secrets:
         api_key = st.secrets['GEMINI_API_KEY']
 except:
     pass
 
-# Jika library ada dan key ada, baru configure
 if HAS_GENAI_LIB and api_key:
     genai.configure(api_key=api_key)
 
-# --- FUNGSI UTILS ---
+# --- FUNGSI LOAD MODEL ---
+@st.cache_resource
 def load_model():
     try:
-        model = pickle.load(open('model_diabetes.sav', 'rb'))
+        # Prioritaskan file .joblib karena lebih stabil untuk scikit-learn/xgboost
+        model = joblib.load('diabetes_xgboost_model.joblib')
         return model
     except FileNotFoundError:
-        return None
+        try:
+            # Fallback ke .pkl jika .joblib tidak ada
+            import pickle
+            model = pickle.load(open('diabetes_xgboost_model.pkl', 'rb'))
+            return model
+        except FileNotFoundError:
+            return None
 
+# --- FUNGSI REKOMENDASI AI ---
 def get_gemini_recommendation(user_data, is_high_risk):
-    """
-    Jika API Key ada -> Panggil Gemini.
-    Jika API Key TIDAK ada -> Return teks dummy untuk cek visual (UI).
+    risk_status = "TINGGI (Indikasi Diabetes/Pra-Diabetes)" if is_high_risk else "RENDAH (Sehat)"
+    
+    # Prompt disesuaikan dengan fitur dataset BRFSS (Gaya Hidup)
+    prompt = f"""
+    Bertindaklah sebagai dokter spesialis penyakit dalam.
+    Saya memiliki data gaya hidup pasien sebagai berikut:
+    - BMI: {user_data['BMI']}
+    - Tekanan Darah Tinggi: {'Ya' if user_data['HighBP']==1 else 'Tidak'}
+    - Kolesterol Tinggi: {'Ya' if user_data['HighChol']==1 else 'Tidak'}
+    - Perokok: {'Ya' if user_data['Smoker']==1 else 'Tidak'}
+    - Aktivitas Fisik: {'Ya' if user_data['PhysActivity']==1 else 'Tidak'}
+    - Konsumsi Buah/Sayur: {'Rutin' if user_data['Fruits']==1 and user_data['Veggies']==1 else 'Kurang'}
+    - Usia: Kategori {user_data['Age']} (Skala 1-13)
+    
+    Hasil prediksi risiko diabetes pasien ini adalah: {risk_status}.
+    
+    Tugas:
+    1. Jelaskan faktor risiko utama dari data di atas yang berkontribusi pada hasil prediksi.
+    2. Berikan 3 rekomendasi perubahan gaya hidup spesifik (terkait diet dan olahraga).
+    3. Berikan saran medis apakah perlu cek lab lanjutan (HbA1c/Gula Darah Puasa).
+    4. Gunakan bahasa Indonesia yang empatik namun tegas secara medis.
     """
     
-    # --- MODE SIMULASI VISUAL (Jika API Key / Library tidak ada) ---
     if not api_key or not HAS_GENAI_LIB:
-        risk_status = "Tinggi" if is_high_risk else "Rendah"
         return f"""
-        ### 🧪 Mode Simulasi Visual (API Gemini Off)
+        **[Mode Simulasi Visual]**
         
-        Karena API Key belum dipasang, berikut adalah **contoh tampilan** rekomendasi AI:
+        Karena API Key Gemini belum terpasang, ini adalah contoh saran yang akan muncul:
         
-        **Analisis Singkat:**
-        * Pasien memiliki risiko **{risk_status}**. Hal ini dipengaruhi oleh tingginya kadar Glukosa ({user_data['Glucose']}) dan BMI ({user_data['BMI']}).
+        Hasil prediksi pasien adalah **{risk_status}**.
+        Berdasarkan data, faktor risiko terbesar adalah BMI tinggi dan kurangnya aktivitas fisik.
         
-        **Rekomendasi Pola Makan:**
-        1.  Kurangi konsumsi karbohidrat sederhana (nasi putih, roti putih).
-        2.  Perbanyak serat dari sayuran hijau dan buah-buahan.
-        3.  Hindari minuman manis kemasan.
-        
-        **Saran Aktivitas:**
-        * Jalan cepat minimal 30 menit sehari, 5 kali seminggu.
-        
-        > *Catatan: Ini hanya teks contoh untuk mengecek layout UI.*
+        **Saran:**
+        1. Mulai jalan kaki 30 menit setiap hari.
+        2. Kurangi makanan berminyak/gorengan (terkait Kolesterol).
+        3. Segera lakukan cek gula darah puasa di puskesmas terdekat.
         """
-
-    # --- MODE ASLI (JIKA API KEY ADA) ---
-    risk_text = "TINGGI (Positif Diabetes)" if is_high_risk else "RENDAH (Negatif Diabetes)"
-    prompt = f"""
-    Bertindaklah sebagai dokter. Analisis data pasien:
-    Usia: {user_data['Age']}, BMI: {user_data['BMI']}, Glukosa: {user_data['Glucose']}.
-    Risiko: {risk_text}.
-    Berikan 3 saran makan dan olahraga dalam Bahasa Indonesia format Markdown bullet points.
-    """
+    
     try:
-        model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content(prompt)
+        model_ai = genai.GenerativeModel('gemini-pro')
+        response = model_ai.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"Error API: {str(e)}"
+        return f"Gagal menghubungi AI: {str(e)}"
 
 # --- UI HALAMAN ---
+st.markdown('<p class="sub-header">Kalkulator Risiko Diabetes & Gaya Hidup</p>', unsafe_allow_html=True)
+st.caption("Menggunakan model Machine Learning berbasis data gaya hidup & riwayat kesehatan.")
 
-st.markdown('<p class="sub-header">Analisis Risiko & Rekomendasi Kesehatan AI</p>', unsafe_allow_html=True)
+model = load_model()
+if not model:
+    st.error("⚠️ File model ('diabetes_xgboost_model.joblib' atau '.pkl') tidak ditemukan. Pastikan file sudah diupload ke folder yang sama.")
 
-# Notifikasi jika berjalan di mode visual
-if not api_key:
-    st.warning("⚠️ **Mode Pratinjau Visual:** API Key Gemini tidak terdeteksi. Sistem akan menampilkan teks simulasi (dummy) pada hasil rekomendasi.")
-
-col_form, col_result = st.columns([1, 2], gap="large")
-
-with col_form:
-    st.info("📋 **Data Kesehatan Pasien**")
-    with st.form("input_form"):
-        # Input fields
-        pregnancies = st.number_input("Jumlah Kehamilan", 0, 20, 0)
-        glucose = st.number_input("Glukosa (mg/dL)", 0, 500, 150) # Default dibuat tinggi biar langsung kelihatan merah pas tes
-        blood_pressure = st.number_input("Tekanan Darah (mm Hg)", 0, 200, 85)
-        skin_thickness = st.number_input("Ketebalan Kulit (mm)", 0, 100, 20)
-        insulin = st.number_input("Insulin (mu U/ml)", 0, 900, 79)
-        bmi = st.number_input("BMI", 0.0, 70.0, 32.0, format="%.1f") # Default tinggi
-        dpf = st.number_input("Diabetes Pedigree Function", 0.0, 3.0, 0.471, format="%.3f")
-        age = st.number_input("Usia (Tahun)", 0, 120, 45)
+# Form Input (Disesuaikan dengan feature_config.json)
+with st.form("health_form"):
+    st.markdown("### 1. Data Fisik & Riwayat Medis")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        bmi = st.number_input("BMI (Body Mass Index)", 10.0, 50.0, 25.0, help="Berat (kg) / Tinggi (m)^2")
+        gen_hlth = st.selectbox("Kondisi Kesehatan Umum", options=[1,2,3,4,5], format_func=lambda x: {1:"Sangat Baik", 2:"Baik", 3:"Cukup", 4:"Buruk", 5:"Sangat Buruk"}[x])
+        age = st.slider("Kategori Usia", 1, 13, 1, help="1: 18-24th ... 13: 80th+")
         
-        submit = st.form_submit_button("🔍 Analisis Risiko (Cek Visual)", type="primary", use_container_width=True)
+    with col2:
+        high_bp = st.selectbox("Riwayat Darah Tinggi?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        high_chol = st.selectbox("Riwayat Kolesterol Tinggi?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        chol_check = st.selectbox("Cek Kolesterol 5 thn Terakhir?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        
+    with col3:
+        heart_disease = st.selectbox("Penyakit Jantung?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        stroke = st.selectbox("Riwayat Stroke?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        diff_walk = st.selectbox("Kesulitan Berjalan?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
 
-with col_result:
-    if submit:
-        # Load Model (atau fallback ke dummy logic)
-        model = load_model()
-        
-        # Logic Dummy untuk simulasi jika model tidak ada
-        # Kita set 'True' jika Glukosa > 140 agar bisa lihat tampilan "Bahaya"
-        if model:
-            input_data = np.array([[pregnancies, glucose, blood_pressure, skin_thickness, insulin, bmi, dpf, age]])
-            prediction_result = model.predict(input_data)[0]
-        else:
-            # Fallback logic
-            prediction_result = 1 if glucose > 140 else 0
-        
-        user_dict = {'Age': age, 'BMI': bmi, 'Glucose': glucose, 'BloodPressure': blood_pressure}
+    st.markdown("### 2. Gaya Hidup & Kebiasaan")
+    col4, col5, col6 = st.columns(3)
+    
+    with col4:
+        phys_activity = st.selectbox("Olahraga dlm 30 Hari Terakhir?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        fruits = st.selectbox("Makan Buah Tiap Hari?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        veggies = st.selectbox("Makan Sayur Tiap Hari?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
 
-        # TAMPILAN HASIL DIAGNOSIS
-        st.subheader("Hasil Diagnosis AI")
-        
-        if prediction_result == 1:
-            st.error(f"""
-            ### 🚨 Risiko Terdeteksi: TINGGI
-            Pasien memiliki probabilitas tinggi mengidap diabetes.
-            **Saran:** Segera konsultasikan ke dokter.
-            """)
-        else:
-            st.success(f"""
-            ### ✅ Risiko Terdeteksi: RENDAH
-            Kondisi pasien relatif aman.
-            **Saran:** Pertahankan gaya hidup sehat.
-            """)
-            
-        st.markdown("---")
-        
-        # TAMPILAN REKOMENDASI (MOCKUP / ASLI)
-        st.subheader("💡 Rekomendasi Personal")
-        
-        # Panggil fungsi (akan return teks dummy jika key kosong)
-        with st.spinner("Menyusun rekomendasi..."):
-            recommendation = get_gemini_recommendation(user_dict, prediction_result == 1)
-            
-            st.markdown(f"""
-            <div style="background-color: #f8f9fa; border-left: 5px solid {'#ff4b4b' if prediction_result == 1 else '#28a745'}; padding: 20px; border-radius: 5px; color: #333;">
-                {recommendation}
-            </div>
-            """, unsafe_allow_html=True)
+    with col5:
+        smoker = st.selectbox("Perokok? (Min. 100 batang seumur hidup)", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        hvy_alcohol = st.selectbox("Peminum Alkohol Berat?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
+        any_healthcare = st.selectbox("Punya Jaminan Kesehatan?", [0, 1], format_func=lambda x: "Ya" if x==1 else "Tidak")
 
-    else:
-        st.markdown("""
-        <div style="text-align: center; padding: 50px; color: #666; background-color: #f0f2f6; border-radius: 10px;">
-            <h3>👋 Area Tampilan Hasil</h3>
-            <p>Klik tombol <b>Analisis Risiko</b> di sebelah kiri untuk melihat simulasi tampilan hasil.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    with col6:
+        ment_hlth = st.slider("Hari Kesehatan Mental Buruk (30 hari terakhir)", 0, 30, 0)
+        phys_hlth = st.slider("Hari Kesehatan Fisik Buruk (30 hari terakhir)", 0, 30, 0)
+        sex = st.selectbox("Jenis Kelamin", [0, 1], format_func=lambda x: "Wanita" if x==0 else "Pria") # Asumsi 0:F, 1:M (Cek metadata asli jika terbalik)
+    
+    # Input tambahan (dummy/default jika tidak terlalu berpengaruh di UI tapi diminta model)
+    no_doc_cost = 0 # Default Tidak
+    education = 4 # Default SMA/Kuliah
+    income = 5 # Default Menengah
+
+    submit_btn = st.form_submit_button("🔍 Analisis Risiko Sekarang", type="primary", use_container_width=True)
+
+# Proses Prediksi
+if submit_btn and model:
+    # Membuat Dictionary sesuai NAMA KOLOM yang persis diminta feature_config.json
+    input_data = {
+        'HighBP': [high_bp],
+        'HighChol': [high_chol],
+        'CholCheck': [chol_check],
+        'BMI': [bmi],
+        'Smoker': [smoker],
+        'Stroke': [stroke],
+        'HeartDiseaseorAttack': [heart_disease],
+        'PhysActivity': [phys_activity],
+        'Fruits': [fruits],
+        'Veggies': [veggies],
+        'HvyAlcoholConsump': [hvy_alcohol],
+        'AnyHealthcare': [any_healthcare],
+        'NoDocbcCost': [no_doc_cost], # Hidden input
+        'GenHlth': [gen_hlth],
+        'MentHlth': [ment_hlth],
+        'PhysHlth': [phys_hlth],
+        'DiffWalk': [diff_walk],
+        'Sex': [sex],
+        'Age': [age],
+        'Education': [education], # Hidden input
+        'Income': [income]        # Hidden input
+    }
+    
+    # Konversi ke DataFrame
+    input_df = pd.DataFrame(input_data)
+    
+    # Pastikan urutan kolom sesuai dengan yang diinginkan model (jika sensitif urutan)
+    # Biasanya pipeline sklearn aman dengan nama kolom, tapi jaga-jaga kita urutkan:
+    expected_columns = [
+        "HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke", 
+        "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies", 
+        "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth", 
+        "MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age", "Education", "Income"
+    ]
+    
+    # Reorder kolom DataFrame
+    input_df = input_df[expected_columns]
+
+    # Prediksi
+    try:
+        prediction = model.predict(input_df)[0]
+        # Jika model support predict_proba
+        try:
+            probability = model.predict_proba(input_df)[0][1]
+        except:
+            probability = 0.0
+
+        st.divider()
+        col_res1, col_res2 = st.columns([1, 2])
+        
+        with col_res1:
+            st.subheader("Hasil Diagnosis")
+            if prediction == 1:
+                st.error("### 🚨 POSITIF\nBeresiko Diabetes")
+                st.write(f"Tingkat Keyakinan Model: **{probability:.1%}**")
+            else:
+                st.success("### ✅ NEGATIF\nRisiko Rendah")
+                st.write(f"Tingkat Keyakinan Model: **{(1-probability):.1%}**")
+
+        with col_res2:
+            st.subheader("💡 Rekomendasi Dokter AI")
+            with st.spinner("Menyusun saran kesehatan..."):
+                rec_text = get_gemini_recommendation(input_data, prediction == 1)
+                st.info(rec_text)
+                
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat prediksi: {str(e)}")
+        st.write("Pastikan format data input sesuai dengan feature_config.json")
