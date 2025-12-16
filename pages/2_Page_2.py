@@ -56,7 +56,6 @@ def load_model():
 def get_gemini_recommendation(user_data, is_high_risk):
     risk_status = "TINGGI (Indikasi Diabetes/Pra-Diabetes)" if is_high_risk else "RENDAH (Sehat)"
     
-    # Prompt disesuaikan dengan fitur dataset BRFSS (Gaya Hidup)
     prompt = f"""
     Bertindaklah sebagai dokter spesialis penyakit dalam.
     Saya memiliki data gaya hidup pasien sebagai berikut:
@@ -78,25 +77,24 @@ def get_gemini_recommendation(user_data, is_high_risk):
     """
     
     if not api_key or not HAS_GENAI_LIB:
-        return f"""
-        **[Mode Simulasi Visual]**
-        
-        Karena API Key Gemini belum terpasang, ini adalah contoh saran yang akan muncul:
-        
-        Hasil prediksi pasien adalah **{risk_status}**.
-        Berdasarkan data, faktor risiko terbesar adalah BMI tinggi dan kurangnya aktivitas fisik.
-        
-        **Saran:**
-        1. Mulai jalan kaki 30 menit setiap hari.
-        2. Kurangi makanan berminyak/gorengan (terkait Kolesterol).
-        3. Segera lakukan cek gula darah puasa di puskesmas terdekat.
-        """
+        return "API Key tidak ditemukan. (Mode Simulasi)"
     
     try:
-        model_ai = genai.GenerativeModel('gemini-pro')
+        # --- PERBAIKAN: MENGGUNAKAN MODEL LITE PREVIEW ---
+        # Model ini biasanya lebih longgar kuotanya untuk akun Free Tier
+        model_ai = genai.GenerativeModel('gemini-2.0-flash-lite-preview-02-05')
         response = model_ai.generate_content(prompt)
         return response.text
+        
     except Exception as e:
+        # Jika masih kena limit, kita berikan pesan yang jelas
+        if "429" in str(e):
+            return """
+            ⚠️ **Sedang Sibuk (Traffic Tinggi)**
+            
+            Server AI sedang sibuk atau kuota gratis sementara habis. 
+            Silakan **Tunggu 1 menit** lalu coba tekan tombol Analisis lagi.
+            """
         return f"Gagal menghubungi AI: {str(e)}"
 
 # --- UI HALAMAN ---
